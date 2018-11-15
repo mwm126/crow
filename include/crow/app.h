@@ -58,11 +58,20 @@ namespace crow
             return router_.new_rule_dynamic(std::move(rule));
         }
 
-        template <uint64_t Tag>
-        auto& route(std::string&& rule)
-        {
-            return router_.new_rule_tagged<Tag>(std::move(rule));
-        }
+#if __GNUC__ < 8
+      template <uint64_t Tag>
+      auto route(std::string&& rule)
+        -> typename std::result_of<decltype(&Router::new_rule_tagged<Tag>)(Router, std::string&&)>::type
+      {
+        return router_.new_rule_tagged<Tag>(std::move(rule));
+      }
+#else
+      template <uint64_t Tag>
+      auto route(std::string&& rule)
+      {
+        return router_.new_rule_tagged<Tag>(std::move(rule));
+      }
+#endif
 
         self_t& port(std::uint16_t port)
         {
